@@ -55,7 +55,14 @@ void espulp_reset(void) {
     ulp_used = false;
 }
 
-void common_hal_espulp_ulp_run(espulp_ulp_obj_t *self, uint32_t *program, size_t length, uint32_t pin_mask) {
+void common_hal_espulp_ulp_set_wakeup_period(espulp_ulp_obj_t *self, size_t period_index, uint32_t period_us) {
+    int _errno = ulp_set_wakeup_period(period_index, period_us);
+    if (_errno != ESP_OK) {
+        mp_raise_ValueError(translate("Invalid parameters"));
+    }
+}
+
+void common_hal_espulp_ulp_run(espulp_ulp_obj_t *self, uint32_t *program, size_t length, uint32_t entry_point, uint32_t pin_mask) {
     if (length > ULP_COPROC_RESERVE_MEM) {
         mp_raise_ValueError(translate("Program too long"));
     }
@@ -88,12 +95,17 @@ void common_hal_espulp_ulp_run(espulp_ulp_obj_t *self, uint32_t *program, size_t
     }
     pins_used = pin_mask;
 
-    ulp_set_wakeup_period(0, 20000);
-
+    int _errno;
     switch (self->arch) {
         case FSM:
-            ulp_load_binary(0, (const uint8_t *)program, length);
-            ulp_run(0);
+            _errno = ulp_load_binary(0, (const uint8_t *)program, length / sizeof(uint32_t));
+            if (_errno != ESP_OK) {
+                mp_raise_RuntimeError(translate("Load binary failed"));
+            }
+            _errno = ulp_run(entry_point / sizeof(uint32_t));
+            if (_errno != ESP_OK) {
+                mp_raise_RuntimeError(translate("Run binary failed"));
+            }
             break;
         case RISCV:
             #ifndef CONFIG_IDF_TARGET_ESP32
