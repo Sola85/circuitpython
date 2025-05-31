@@ -67,7 +67,7 @@ static bool _done_callback(rmt_channel_handle_t rx_chan,
     }
 
     if (!self->paused) {
-        rmt_receive(self->channel, self->raw_symbols, self->raw_symbols_size, &rx_config);
+        CHECK_ESP_RESULT(rmt_receive(self->channel, self->raw_symbols, self->raw_symbols_size, &rx_config));
     }
     return false;
 }
@@ -118,9 +118,9 @@ void common_hal_pulseio_pulsein_construct(pulseio_pulsein_obj_t *self, const mcu
     rmt_rx_event_callbacks_t rx_callback = {
         .on_recv_done = _done_callback
     };
-    rmt_rx_register_event_callbacks(self->channel, &rx_callback, self);
-    rmt_enable(self->channel);
-    rmt_receive(self->channel, self->raw_symbols, self->raw_symbols_size, &rx_config);
+    CHECK_ESP_RESULT(rmt_rx_register_event_callbacks(self->channel, &rx_callback, self));
+    CHECK_ESP_RESULT(rmt_enable(self->channel));
+    CHECK_ESP_RESULT(rmt_receive(self->channel, self->raw_symbols, self->raw_symbols_size, &rx_config));
 }
 
 bool common_hal_pulseio_pulsein_deinited(pulseio_pulsein_obj_t *self) {
@@ -139,7 +139,7 @@ void common_hal_pulseio_pulsein_deinit(pulseio_pulsein_obj_t *self) {
 
 void common_hal_pulseio_pulsein_pause(pulseio_pulsein_obj_t *self) {
     self->paused = true;
-    rmt_disable(self->channel);
+    CHECK_ESP_RESULT(rmt_disable(self->channel));
 }
 
 void common_hal_pulseio_pulsein_resume(pulseio_pulsein_obj_t *self, uint16_t trigger_duration) {
@@ -158,8 +158,8 @@ void common_hal_pulseio_pulsein_resume(pulseio_pulsein_obj_t *self, uint16_t tri
 
     self->find_first = true;
     self->paused = false;
-    rmt_enable(self->channel);
-    rmt_receive(self->channel, self->raw_symbols, self->raw_symbols_size, &rx_config);
+    CHECK_ESP_RESULT(rmt_enable(self->channel));
+    CHECK_ESP_RESULT(rmt_receive(self->channel, self->raw_symbols, self->raw_symbols_size, &rx_config));
 }
 
 void common_hal_pulseio_pulsein_clear(pulseio_pulsein_obj_t *self) {
