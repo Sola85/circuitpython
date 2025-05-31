@@ -110,7 +110,7 @@ void common_hal_pulseio_pulsein_construct(pulseio_pulsein_obj_t *self, const mcu
         // 2 us resolution so we can capture 65ms pulses. The RMT period is only 15 bits.
         .resolution_hz = 1000000 / 2,
         .mem_block_symbols = self->raw_symbols_size,
-        .with_dma = 1
+        .flags.with_dma = 1
     };
     // If we fail here, the buffers allocated above will be garbage collected.
     CHECK_ESP_RESULT(rmt_new_rx_channel(&config, &self->channel));
