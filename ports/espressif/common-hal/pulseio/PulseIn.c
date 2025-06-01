@@ -67,7 +67,9 @@ static bool _done_callback(rmt_channel_handle_t rx_chan,
     }
 
     if (!self->paused) {
+        mp_printf(&mp_plat_print, "check 6");
         CHECK_ESP_RESULT(rmt_receive(self->channel, self->raw_symbols, self->raw_symbols_size, &rx_config));
+        mp_printf(&mp_plat_print, "check 7");
     }
     return false;
 }
@@ -113,14 +115,18 @@ void common_hal_pulseio_pulsein_construct(pulseio_pulsein_obj_t *self, const mcu
         .flags.with_dma = 1
     };
     // If we fail here, the buffers allocated above will be garbage collected.
+    mp_printf(&mp_plat_print, "check 1");
     CHECK_ESP_RESULT(rmt_new_rx_channel(&config, &self->channel));
-
+    mp_printf(&mp_plat_print, "check 2");
     rmt_rx_event_callbacks_t rx_callback = {
         .on_recv_done = _done_callback
     };
     CHECK_ESP_RESULT(rmt_rx_register_event_callbacks(self->channel, &rx_callback, self));
+    mp_printf(&mp_plat_print, "check 3");
     CHECK_ESP_RESULT(rmt_enable(self->channel));
+    mp_printf(&mp_plat_print, "check 4");
     CHECK_ESP_RESULT(rmt_receive(self->channel, self->raw_symbols, self->raw_symbols_size, &rx_config));
+    mp_printf(&mp_plat_print, "check 5");
 }
 
 bool common_hal_pulseio_pulsein_deinited(pulseio_pulsein_obj_t *self) {
@@ -139,7 +145,9 @@ void common_hal_pulseio_pulsein_deinit(pulseio_pulsein_obj_t *self) {
 
 void common_hal_pulseio_pulsein_pause(pulseio_pulsein_obj_t *self) {
     self->paused = true;
+    mp_printf(&mp_plat_print, "check 8");
     CHECK_ESP_RESULT(rmt_disable(self->channel));
+    mp_printf(&mp_plat_print, "check 9");
 }
 
 void common_hal_pulseio_pulsein_resume(pulseio_pulsein_obj_t *self, uint16_t trigger_duration) {
@@ -158,8 +166,11 @@ void common_hal_pulseio_pulsein_resume(pulseio_pulsein_obj_t *self, uint16_t tri
 
     self->find_first = true;
     self->paused = false;
+    mp_printf(&mp_plat_print, "check 10");
     CHECK_ESP_RESULT(rmt_enable(self->channel));
+    mp_printf(&mp_plat_print, "check 11");
     CHECK_ESP_RESULT(rmt_receive(self->channel, self->raw_symbols, self->raw_symbols_size, &rx_config));
+    mp_printf(&mp_plat_print, "check 12");
 }
 
 void common_hal_pulseio_pulsein_clear(pulseio_pulsein_obj_t *self) {
