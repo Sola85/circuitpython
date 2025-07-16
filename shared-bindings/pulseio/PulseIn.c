@@ -59,7 +59,7 @@
 //|           pulses.clear()
 //|
 //|           # Resume with an 80 microsecond active pulse
-//|           pulses.resume(80)
+//|           pulses.resume(80)"""
 //|         ...
 //|
 static mp_obj_t pulseio_pulsein_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *all_args) {

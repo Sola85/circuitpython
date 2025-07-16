@@ -76,8 +76,8 @@ void common_hal_pulseio_pulsein_construct(pulseio_pulsein_obj_t *self, const mcu
     uint16_t maxlen, bool idle_state) {
 
     // Only use dma when necessary, since dma-rmt might not be available.
-    // If dma is not available, this will raise an error below. 
-    bool use_dma = maxlen/2 > SOC_RMT_MEM_WORDS_PER_CHANNEL;
+    // If dma is not available, this will raise an error below.
+    bool use_dma = maxlen / 2 > SOC_RMT_MEM_WORDS_PER_CHANNEL;
     
     self->buffer = (uint16_t *)m_malloc_without_collect(maxlen * sizeof(uint16_t));
     if (self->buffer == NULL) {
@@ -116,13 +116,13 @@ void common_hal_pulseio_pulsein_construct(pulseio_pulsein_obj_t *self, const mcu
         // 2 us resolution so we can capture 65ms pulses. The RMT period is only 15 bits.
         .resolution_hz = 1000000 / 2,
         .mem_block_symbols = use_dma ? self->raw_symbols_size : SOC_RMT_MEM_WORDS_PER_CHANNEL,
-        .flags.with_dma = use_dma;
+        .flags.with_dma = use_dma
     };
     // If we fail here, the self->buffer will be garbage collected.
     esp_err_t result = rmt_new_rx_channel(&config, &self->channel);
     if (result != ESP_OK) {
         port_free(self->raw_symbols);
-        if (result == ESP_ERR_NOT_SUPPORTED){
+        if (result == ESP_ERR_NOT_SUPPORTED) {
             mp_raise_ValueError_varg(MP_ERROR_TEXT("Invalid %q"), MP_QSTR_maxlen);
         } else {
             raise_esp_error(result);
