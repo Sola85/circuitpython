@@ -77,8 +77,8 @@ void common_hal_pulseio_pulsein_construct(pulseio_pulsein_obj_t *self, const mcu
 
     // Only use dma when necessary, since dma-rmt might not be available.
     // If dma is not available, this will raise an error below.
-    bool use_dma = maxlen / 2 > SOC_RMT_MEM_WORDS_PER_CHANNEL;
-    
+    bool use_dma = maxlen > 128;
+
     self->buffer = (uint16_t *)m_malloc_without_collect(maxlen * sizeof(uint16_t));
     if (self->buffer == NULL) {
         m_malloc_fail(maxlen * sizeof(uint16_t));
@@ -87,7 +87,7 @@ void common_hal_pulseio_pulsein_construct(pulseio_pulsein_obj_t *self, const mcu
     // captured because we may skip the first portion of a symbol.
     self->raw_symbols_size = (maxlen / 2 + 1) * sizeof(rmt_symbol_word_t);
     // RMT DMA mode cannot access PSRAM -> ensure raw_symbols is in internal ram
-    self->raw_symbols = (rmt_symbol_word_t *)port_malloc(self->raw_symbols_size, true);
+    self->raw_symbols = (rmt_symbol_word_t *)port_malloc(self->raw_symbols_size, use_dma);
     if (self->raw_symbols == NULL) {
         m_free(self->buffer);
         m_malloc_fail(self->raw_symbols_size);
