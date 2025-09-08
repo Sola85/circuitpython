@@ -78,11 +78,11 @@ bool supervisor_workflow_active(void) {
         return true;
     }
     #endif
-    #if CIRCUITPY_SERIAL_BLE
-    if (ble_serial_connected()) {
-        return true;
-    }
-    #endif
+    //#if CIRCUITPY_SERIAL_BLE
+    //if (ble_serial_connected()) {
+    //    return true;
+    //}
+    //#endif
 
     return false;
 }
