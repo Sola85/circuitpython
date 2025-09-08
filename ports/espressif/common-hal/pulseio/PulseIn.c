@@ -67,7 +67,9 @@ static bool _done_callback(rmt_channel_handle_t rx_chan,
     }
 
     if (!self->paused) {
-        rmt_receive(self->channel, self->raw_symbols, self->raw_symbols_size, &rx_config);
+        mp_printf(&mp_plat_print, "check 6");
+        CHECK_ESP_RESULT(rmt_receive(self->channel, self->raw_symbols, self->raw_symbols_size, &rx_config));
+        mp_printf(&mp_plat_print, "check 7");
     }
     return false;
 }
@@ -80,7 +82,7 @@ void common_hal_pulseio_pulsein_construct(pulseio_pulsein_obj_t *self, const mcu
     }
     // We add one to the maxlen version to ensure that two symbols at lease are
     // captured because we may skip the first portion of a symbol.
-    self->raw_symbols_size = MIN(64, maxlen / 2 + 1) * sizeof(rmt_symbol_word_t);
+    self->raw_symbols_size = (maxlen / 2 + 1) * sizeof(rmt_symbol_word_t);
     self->raw_symbols = (rmt_symbol_word_t *)m_malloc_without_collect(self->raw_symbols_size);
     if (self->raw_symbols == NULL) {
         m_free(self->buffer);
@@ -109,17 +111,22 @@ void common_hal_pulseio_pulsein_construct(pulseio_pulsein_obj_t *self, const mcu
         .clk_src = RMT_CLK_SRC_DEFAULT,
         // 2 us resolution so we can capture 65ms pulses. The RMT period is only 15 bits.
         .resolution_hz = 1000000 / 2,
-        .mem_block_symbols = SOC_RMT_MEM_WORDS_PER_CHANNEL,
+        .mem_block_symbols = self->raw_symbols_size,
+        .flags.with_dma = 1
     };
     // If we fail here, the buffers allocated above will be garbage collected.
+    mp_printf(&mp_plat_print, "check 1");
     CHECK_ESP_RESULT(rmt_new_rx_channel(&config, &self->channel));
-
+    mp_printf(&mp_plat_print, "check 2");
     rmt_rx_event_callbacks_t rx_callback = {
         .on_recv_done = _done_callback
     };
-    rmt_rx_register_event_callbacks(self->channel, &rx_callback, self);
-    rmt_enable(self->channel);
-    rmt_receive(self->channel, self->raw_symbols, self->raw_symbols_size, &rx_config);
+    CHECK_ESP_RESULT(rmt_rx_register_event_callbacks(self->channel, &rx_callback, self));
+    mp_printf(&mp_plat_print, "check 3");
+    CHECK_ESP_RESULT(rmt_enable(self->channel));
+    mp_printf(&mp_plat_print, "check 4");
+    CHECK_ESP_RESULT(rmt_receive(self->channel, self->raw_symbols, self->raw_symbols_size, &rx_config));
+    mp_printf(&mp_plat_print, "check 5");
 }
 
 bool common_hal_pulseio_pulsein_deinited(pulseio_pulsein_obj_t *self) {
@@ -138,7 +145,9 @@ void common_hal_pulseio_pulsein_deinit(pulseio_pulsein_obj_t *self) {
 
 void common_hal_pulseio_pulsein_pause(pulseio_pulsein_obj_t *self) {
     self->paused = true;
-    rmt_disable(self->channel);
+    mp_printf(&mp_plat_print, "check 8");
+    CHECK_ESP_RESULT(rmt_disable(self->channel));
+    mp_printf(&mp_plat_print, "check 9");
 }
 
 void common_hal_pulseio_pulsein_resume(pulseio_pulsein_obj_t *self, uint16_t trigger_duration) {
@@ -157,8 +166,11 @@ void common_hal_pulseio_pulsein_resume(pulseio_pulsein_obj_t *self, uint16_t tri
 
     self->find_first = true;
     self->paused = false;
-    rmt_enable(self->channel);
-    rmt_receive(self->channel, self->raw_symbols, self->raw_symbols_size, &rx_config);
+    mp_printf(&mp_plat_print, "check 10");
+    CHECK_ESP_RESULT(rmt_enable(self->channel));
+    mp_printf(&mp_plat_print, "check 11");
+    CHECK_ESP_RESULT(rmt_receive(self->channel, self->raw_symbols, self->raw_symbols_size, &rx_config));
+    mp_printf(&mp_plat_print, "check 12");
 }
 
 void common_hal_pulseio_pulsein_clear(pulseio_pulsein_obj_t *self) {
